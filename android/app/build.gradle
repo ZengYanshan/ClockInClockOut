@@ -1,0 +1,20 @@
+plugins {
+    id 'com.android.application';
+}
+
+android {
+    namespace 'com.clockinclockout.app';
+    compileSdk 35;
+
+    defaultConfig {
+        applicationId 'com.clockinclockout.app';
+        minSdk 24;
+        targetSdk 34;
+        versionCode 1;
+        versionName '1.0.0';
+    }
+
+    sourceSets {
+        main.assets.srcDirs = ['../../dist'];
+    }
+}
