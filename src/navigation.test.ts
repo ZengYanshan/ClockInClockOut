@@ -36,6 +36,17 @@ function setup() {
 }
 
 describe('手机和浏览器历史返回', () => {
+    it('记录与设置切换后，首页按钮直接返回首页', () => {
+        const app = setup();
+        app.navigate('records');
+        app.navigate('settings');
+        expect(app.page.value).toBe('settings');
+        expect(app.entries).toHaveLength(3);
+        app.navigate('home');
+        app.flush();
+        expect(app.page.value).toBe('home');
+    });
+
     it.each(['records', 'settings'] as const)('从 %s 返回首页，再返回离开网站', (page) => {
         const app = setup();
         app.navigate(page);

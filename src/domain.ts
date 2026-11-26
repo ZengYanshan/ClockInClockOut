@@ -85,3 +85,16 @@ export function classification(punch: Punch, shifts: Shift[]): string {
     }
     return '范围外 · 不计工时';
 }
+
+export function todayShiftStatuses(punches: Punch[], shifts: Shift[], now: Date) {
+    const today = localDate(now);
+    const time = localTime(now);
+    const todayRecords = punches.filter(punch => punchDate(punch, shifts) === today);
+    return dayStats(todayRecords, shifts).groups.map(({ shift, start, end }) => ({
+        shift,
+        incomingActive: matches(time, shift.inStart, shift.inEnd, shifts),
+        outgoingActive: time >= shift.outStart && matches(time, shift.outStart, shift.outEnd, shifts),
+        incoming: start?.time ?? (time < shift.inStart ? '未开启' : '未打卡'),
+        outgoing: end?.time ?? (time < shift.outStart ? '未开启' : '未打卡'),
+    }));
+}

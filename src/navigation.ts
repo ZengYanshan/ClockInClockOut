@@ -42,8 +42,10 @@ export function createNavigation(browser: Window = window) {
             browser.history.back();
             return;
         }
+        const switchingTab = page.value !== 'home';
         page.value = next;
-        browser.history.pushState(state(), '');
+        if (switchingTab) { browser.history.replaceState(state(), ''); }
+        else { browser.history.pushState(state(), ''); }
     }
 
     function openModal(next: Exclude<Modal, null>) {

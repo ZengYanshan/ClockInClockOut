@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classification, defaultShifts, punchDate, dayStats, validateShifts, weekDates, weekTotal, type Punch, type Shift } from './domain';
+import { classification, todayShiftStatuses, defaultShifts, punchDate, dayStats, validateShifts, weekDates, weekTotal, type Punch, type Shift } from './domain';
 
 const morning: Shift = { id: 'a', name: '上午', inStart: '08:50:00', inEnd: '09:10:00', outStart: '11:50:00', outEnd: '12:10:00' };
 const afternoon: Shift = { id: 'b', name: '下午', inStart: '13:50:00', inEnd: '14:10:00', outStart: '17:50:00', outEnd: '18:10:00' };
@@ -66,5 +66,59 @@ describe('图片预置范围', () => {
     });
     it('真正重叠的范围仍被拒绝', () => {
         expect(validateShifts([...defaultShifts, { ...morning, id: 'extra' }])).toContain('重合');
+    });
+});
+
+describe('今日打卡状态', () => {
+    it('按签到和签退各自的开始时间切换状态', () => {
+        const before = todayShiftStatuses([], [morning], new Date('2026-11-24T08:49:59'))[0];
+        expect(before.incoming).toBe('未开启');
+        expect(before.outgoing).toBe('未开启');
+        const started = todayShiftStatuses([], [morning], new Date('2026-11-24T08:50:00'))[0];
+        expect(started.incoming).toBe('未打卡');
+        expect(started.outgoing).toBe('未开启');
+        expect(todayShiftStatuses([], [morning], new Date('2026-11-24T11:50:00'))[0].outgoing).toBe('未打卡');
+    });
+    it('显示今日最早签到和最晚签退，排除其他日期', () => {
+        const punches = [...records(['08:55:00', '09:00:00', '11:55:00', '12:05:00']), ...records(['08:50:00'], '2026-11-23')];
+        const status = todayShiftStatuses(punches, [morning], new Date('2026-11-24T18:00:00'))[0];
+        expect(status.incoming).toBe('08:55:00');
+        expect(status.outgoing).toBe('12:05:00');
+    });
+    it('凌晨签退归前一天，不显示为今日已打卡', () => {
+        const status = todayShiftStatuses(records(['00:10:00']), defaultShifts, new Date('2026-11-24T00:15:00'))[2];
+        expect(status.incoming).toBe('未开启');
+        expect(status.outgoing).toBe('未开启');
+        expect(todayShiftStatuses([], [], new Date('2026-11-24T12:00:00'))).toEqual([]);
+    });
+});
+
+describe('当前打卡窗口高亮', () => {
+    it('随时间进入和离开窗口，窗口间隙不高亮', () => {
+        const statusAt = (time: string) => todayShiftStatuses([], [morning], new Date(`2026-11-24T${time}`))[0];
+        expect(statusAt('08:49:59').incomingActive).toBe(false);
+        expect(statusAt('08:50:00').incomingActive).toBe(true);
+        expect(statusAt('09:10:00').incomingActive).toBe(true);
+        expect(statusAt('09:10:01').incomingActive).toBe(false);
+        expect(statusAt('11:49:59').outgoingActive).toBe(false);
+        expect(statusAt('11:50:00').outgoingActive).toBe(true);
+        expect(statusAt('12:10:00').outgoingActive).toBe(true);
+        expect(statusAt('12:10:01').outgoingActive).toBe(false);
+    });
+    it('共享端点只高亮后一个窗口，已有打卡仍高亮', () => {
+        const punches = records(['09:00:00']);
+        const active = todayShiftStatuses(punches, defaultShifts, new Date('2026-11-24T10:00:00'))[0];
+        expect(active.incoming).toBe('09:00:00');
+        expect(active.incomingActive).toBe(true);
+        const statuses = todayShiftStatuses([], defaultShifts, new Date('2026-11-24T12:45:00'));
+        expect(statuses[0].outgoingActive).toBe(false);
+        expect(statuses[1].incomingActive).toBe(true);
+    });
+    it('跨午夜后不把前一天的签退窗口高亮到今日', () => {
+        const evening = todayShiftStatuses([], defaultShifts, new Date('2026-11-24T23:59:59'))[2];
+        expect(evening.outgoingActive).toBe(true);
+        const nextDay = todayShiftStatuses([], defaultShifts, new Date('2026-11-25T00:00:00'))[2];
+        expect(nextDay.outgoing).toBe('未开启');
+        expect(nextDay.outgoingActive).toBe(false);
     });
 });
