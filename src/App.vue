@@ -68,13 +68,14 @@ const days = computed(() => [...dates.value].reverse().filter(date => data.value
     return { date, punches, ...dayStats(punches, data.value.shifts) };
 }));
 const collapsed = ref<string[]>([]);
-const toast = ref('');
-let toastTimer = 0;
+const notification = ref('');
+let notificationTimer = 0;
 function notify(message: string) {
-    toast.value = message;
-    window.clearTimeout(toastTimer);
-    toastTimer = window.setTimeout(() => { toast.value = ''; }, 3500);
+    notification.value = message;
+    window.clearTimeout(notificationTimer);
+    notificationTimer = window.setTimeout(() => { notification.value = ''; }, 1000);
 }
+onUnmounted(() => { window.clearTimeout(notificationTimer); });
 function persist(next: Data): boolean {
     try {
         localStorage.setItem(key, JSON.stringify(next));
@@ -86,8 +87,8 @@ function persist(next: Data): boolean {
 function punch() {
     const date = new Date();
     const record: Punch = { id: crypto.randomUUID(), date: localDate(date), time: localTime(date), source: 'click' };
-    if (data.value.punches.some(p => p.date === record.date && p.time === record.time)) { notify('这一秒已经打过卡了'); return; }
-    if (persist({ ...data.value, punches: [...data.value.punches, record] })) { notify(`打卡成功：${record.time}`); }
+    if (data.value.punches.some(p => p.date === record.date && p.time === record.time)) { notify('已签到，谢谢！'); return; }
+    if (persist({ ...data.value, punches: [...data.value.punches, record] })) { notify(`打卡成功`); }
 }
 function moveWeek(offset: number) {
     const date = new Date(`${selectedWeek.value}T12:00:00`);
@@ -95,7 +96,7 @@ function moveWeek(offset: number) {
     selectedWeek.value = localDate(date);
 }
 function pretty(date: string, weekday = false) {
-    return new Date(`${date}T12:00:00`).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', ...(weekday ? { weekday: 'long' as const } : {}) });
+    return new Date(`${date}T12:00:00`).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', ...(weekday ? { weekday: 'long' as const } : {}) }).replace(/日\s*星期/, '日 星期');
 }
 const formError = ref('');
 const shiftForm = ref<Shift>({ id: '', name: '', inStart: '', inEnd: '', outStart: '', outEnd: '' });
@@ -145,7 +146,7 @@ function confirmDelete() {
                     <div class="screen-bezel">
                         <div class="machine-screen" :class="{ 'content-screen': page !== 'home' }">
                             <div v-if="page === 'home'" class="screen-home" :inert="!!modal">
-                            <div class="machine-date">{{ today }} <span>{{ now.toLocaleDateString('zh-CN', { weekday: 'long' }) }}</span></div>
+                            <div class="machine-date">{{ today.replaceAll('-', '.') }} <span>{{ now.toLocaleDateString('zh-CN', { weekday: 'long' }) }}</span></div>
                             <time class="machine-clock">{{ localTime(now) }}</time>
                             <div class="machine-week-total"><span>本周<br/>累计</span><strong>{{ duration(total) }}</strong></div>
                             <section class="machine-today" aria-label="今日各时段打卡情况">
@@ -194,23 +195,37 @@ function confirmDelete() {
                                         <strong>{{ pretty(day.date, true) }}</strong>
                                         <ChevronRight :size="16" :class="{ rotated: !collapsed.includes(day.date) }" />
                                     </button>
-                                    <button class="small-icon" aria-label="增加记录" @click="editPunch()">
-                                        <Plus :size="16" />
-                                    </button>
                                 </div>
                                     <div v-if="!collapsed.includes(day.date)" class="day-content">
-                                        <div v-for="p in day.punches" :key="p.id" class="record-row"><span class="record-dot"
-                                                :class="{ outside: classification(p, data.shifts).startsWith('时段外') }"></span>
-                                            <div class="record-label">{{ classification(p, data.shifts) }}<small>{{ p.source ===
-                                                'manual' ? '手动记录' : '即时打卡' }}</small></div><time>{{ p.time }}</time>
-                                            <button class="small-icon" aria-label="编辑记录" @click="editPunch(p)">
-                                                <Pencil :size="16" />
-                                            </button>
-                                            <button class="small-icon danger" aria-label="删除记录"
-                                                @click="askDelete('punch', p.id, `${p.date} ${p.time} 的记录`)">
-                                                <Trash2 :size="16" />
-                                            </button>
-                                        </div>
+                                        <table class="daily-status-table">
+                                            <thead>
+                                                <tr><th scope="col">打卡时段</th><th scope="col">签到</th><th scope="col">签退</th><th scope="col">打卡时长</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="group in day.groups" :key="group.shift.id">
+                                                    <th scope="row">{{ group.shift.name }}</th>
+                                                    <td :class="group.start ? 'status-punched' : 'status-missing'">{{ group.start?.time ?? '未打卡' }}</td>
+                                                    <td :class="group.end ? 'status-punched' : 'status-missing'">{{ group.end?.time ?? '未打卡' }}</td>
+                                                    <td :class="group.total > 0 ? 'status-punched' : 'status-missing'">{{ duration(group.total) }}</td>
+                                                </tr>
+                                                <tr v-if="!day.groups.length"><td colspan="4">暂无打卡时段</td></tr>
+                                            </tbody>
+                                        </table>
+                                        <details class="daily-record-details">
+                                            <summary>管理全部记录（{{ day.punches.length }} 条）</summary>
+                                            <div v-for="p in day.punches" :key="p.id" class="record-row"><span class="record-dot"
+                                                    :class="{ outside: classification(p, data.shifts).startsWith('时段外') }"></span>
+                                                <div class="record-label">{{ classification(p, data.shifts) }}<small>{{ p.source ===
+                                                    'manual' ? '手动记录' : '即时打卡' }}</small></div><time>{{ p.time }}</time>
+                                                <button class="small-icon" aria-label="编辑记录" @click="editPunch(p)">
+                                                    <Pencil :size="16" />
+                                                </button>
+                                                <button class="small-icon danger" aria-label="删除记录"
+                                                    @click="askDelete('punch', p.id, `${p.date} ${p.time} 的记录`)">
+                                                    <Trash2 :size="16" />
+                                                </button>
+                                            </div>
+                                        </details>
                                     </div>
                                 </article>
                             </section>
@@ -247,6 +262,12 @@ function confirmDelete() {
                                     <Plus :size="20" /> 新增时段
                                 </button>
                             </section>
+                            </div>
+                            <div class="screen-notification" role="status" aria-atomic="true">
+                                <template v-if="notification">
+                                    <Check :size="36" aria-hidden="true" />
+                                    <span>{{ notification }}</span>
+                                </template>
                             </div>
                             <nav class="screen-nav" :inert="!!modal" aria-label="页面导航">
                                 <button :aria-current="page === 'home' ? 'page' : undefined" @click="navigate('home')">打卡</button>
@@ -305,11 +326,5 @@ function confirmDelete() {
                 </div>
             </section>
         </main>
-        <Transition name="toast">
-            <div v-if="toast" class="toast-message" role="status">
-                <Check :size="18" />{{ toast }}
-            </div>
-        </Transition>
-
     </div>
 </template>

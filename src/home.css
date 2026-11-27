@@ -27,15 +27,20 @@
     isolation: isolate;
     border-radius: inherit;
     background: linear-gradient(105deg, #ffffff04, transparent 35%, #00000010), #363e49;
-    box-shadow: inset 0 calc(4.2 * var(--machine-unit)) 0 #59616f, inset calc(1.7 * var(--machine-unit)) 0 0 #242b3480, inset calc(-1.7 * var(--machine-unit)) 0 0 #242b3480, inset 0 calc(-4 * var(--machine-unit)) 0 #222932;
+    box-shadow: inset 0 calc(1.7 * var(--machine-unit)) 0 #222932, inset calc(1.7 * var(--machine-unit)) 0 0 #242b3480, inset calc(-1.7 * var(--machine-unit)) 0 0 #242b3480, inset 0 calc(-4 * var(--machine-unit)) 0 #222932;
 }
 
 .machine-head {
     position: relative;
-    padding: calc(14.2 * var(--machine-unit)) calc(4 * var(--machine-unit)) calc(9.2 * var(--machine-unit));
-    border-radius: calc(12 * var(--machine-unit)) calc(12 * var(--machine-unit)) calc(9 * var(--machine-unit)) calc(9 * var(--machine-unit));
+    margin-top: calc(2.8 * var(--machine-unit));
+    padding: calc(12.2 * var(--machine-unit)) calc(4 * var(--machine-unit)) calc(10.2 * var(--machine-unit));
+    border-radius: calc(9 * var(--machine-unit));
     background: linear-gradient(110deg, #ffffff04, transparent 50%, #00000010);
-    box-shadow: 0 calc(1.4 * var(--machine-unit)) 0 #58616f, 0 calc(2.8 * var(--machine-unit)) 0 #22283180;
+    box-shadow:
+        0 calc(-1.4 * var(--machine-unit)) 0 #58616f,
+        0 calc(-2.8 * var(--machine-unit)) 0 #22283180,
+        0 calc(1.4 * var(--machine-unit)) 0 #58616f,
+        0 calc(2.8 * var(--machine-unit)) 0 #22283180;
 }
 
 .screen-bezel {
@@ -46,7 +51,7 @@
 }
 
 .machine-screen {
-    height: calc(95.1 * var(--machine-unit));
+    height: calc(100 * var(--machine-unit));
     position: relative;
     overflow: hidden;
     border-radius: calc(4.2 * var(--machine-unit));
@@ -93,14 +98,14 @@
     margin-top: calc(8 * var(--machine-unit));
     font-size: calc(4 * var(--machine-unit));
     line-height: 1.2;
-    color: #e1efff;
+    color: #48ff76;
 }
 
 .machine-week-total strong {
     font-size: calc(12 * var(--machine-unit));
     font-weight: 500;
     font-variant-numeric: tabular-nums;
-    color: #fff;
+    color: #48ff76;
 }
 
 .screen-wave {
@@ -117,8 +122,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: calc(8 * var(--machine-unit));
-    padding-bottom: calc(17 * var(--machine-unit));
+    padding-top: calc(3.2 * var(--machine-unit));
+    padding-bottom: calc(15 * var(--machine-unit));
 }
 
 .machine-indicator {
@@ -132,7 +137,7 @@
 .scanner-frame {
     width: calc(55.5 * var(--machine-unit));
     height: calc(55.6 * var(--machine-unit));
-    margin-top: calc(7.3 * var(--machine-unit));
+    margin-top: calc(4.3 * var(--machine-unit));
     padding: calc(3.6 * var(--machine-unit)) calc(3.1 * var(--machine-unit));
     border: calc(.65 * var(--machine-unit)) solid #626c7b;
     border-radius: calc(10 * var(--machine-unit));
@@ -261,12 +266,40 @@
     margin: 0;
 }
 
+.screen-notification {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2cqw;
+    padding: 2cqw 3cqw;
+    color: #000;
+    background: #fff;
+    font-size: clamp(18px, 5cqw, 24px);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+
+.screen-notification:empty {
+    display: none;
+}
+
+.machine-screen .screen-notification .lucide {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+}
+
 .screen-nav {
     position: relative;
     z-index: 2;
     display: flex;
     flex-shrink: 0;
-    gap: 1cqw;
+    gap: 0;
     border-top: 1px solid #ffffff30;
     background: transparent;
 }
@@ -462,10 +495,6 @@
     font-size: 2.8cqw;
 }
 
-.machine-screen button:hover {
-    background-color: #ffffff20;
-}
-
 .machine-screen button:focus-visible {
     outline: 2px solid #fff;
     outline-offset: -2px;
@@ -644,20 +673,23 @@
 }
 
 .screen-home {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: minmax(0, 12fr) minmax(0, 25fr) minmax(0, 20fr) minmax(0, 43fr);
+    padding-top: calc(3 * var(--machine-unit));
 }
 
 .screen-home .machine-date {
-    padding-top: calc(5 * var(--machine-unit));
+    align-self: center;
+    padding-top: 0;
 }
 
 .screen-home .machine-clock {
-    margin-top: calc(2 * var(--machine-unit));
+    align-self: center;
+    margin-top: 0;
 }
 
 .screen-home .machine-week-total {
-    margin-top: calc(2.5 * var(--machine-unit));
+    margin-top: 0;
 }
 
 .machine-today {
@@ -667,7 +699,7 @@
     flex: 1;
     flex-direction: column;
     min-height: 0;
-    margin: calc(4 * var(--machine-unit)) calc(4 * var(--machine-unit)) calc(2 * var(--machine-unit));
+    margin: calc(2 * var(--machine-unit)) calc(4 * var(--machine-unit)) calc(2 * var(--machine-unit));
     font-size: calc(3.4 * var(--machine-unit));
     text-align: center;
     font-variant-numeric: tabular-nums;
@@ -689,6 +721,9 @@
 }
 
 .machine-status-list {
+    display: grid;
+    flex: 1;
+    grid-auto-rows: minmax(min-content, 1fr);
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -723,4 +758,58 @@
 /* 当前时间段的打卡情况高亮 */
 .machine-status-row .status-active {
     /* TODO */
+}
+
+.machine-screen .daily-status-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: center;
+    color: #fff;
+    font-size: 3cqw;
+    font-variant-numeric: tabular-nums;
+}
+
+.daily-status-table th,
+.daily-status-table td {
+    padding: 1.5cqw .5cqw;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+.daily-status-table th:first-child {
+    width: 22%;
+}
+
+.daily-status-table td {
+    white-space: nowrap;
+}
+
+.daily-status-table thead {
+    color: #d5e8ff;
+    border-bottom: 1px solid #ffffff40;
+}
+
+.daily-status-table .status-punched {
+    color: #48ff76;
+}
+
+.daily-status-table .status-missing {
+    color: #ffe0a3;
+}
+
+.daily-record-details {
+    margin: 1cqw 0 2cqw;
+}
+
+.daily-record-details summary {
+    padding: 1.5cqw 0;
+    color: #d5e8ff;
+    cursor: pointer;
+    font-size: 2.6cqw;
+}
+
+.machine-screen .section-heading > span,
+.machine-screen .section-heading b {
+    color: #48ff76;
 }

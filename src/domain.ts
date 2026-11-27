@@ -13,7 +13,7 @@ export function seconds(time: string): number {
     return h * 3600 + m * 60 + s;
 }
 export function duration(value: number): string {
-    return `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(Math.floor(value % 3600 / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+    return `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(Math.floor(value % 3600 / 60)).padStart(2, '0')}`;
 }
 export function weekDates(date: string): string[] {
     const day = new Date(`${date}T12:00:00`);

@@ -706,35 +706,6 @@ footer {
     margin: 0 24px;
 }
 
-.toast-message {
-    position: fixed;
-    top: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #fff;
-    background: #283d59ed;
-    border-radius: 12px;
-    padding: 14px 20px;
-    box-shadow: 0 5px 25px #102a4320;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    z-index: 20;
-    max-width: 94vw;
-    width: max-content;
-}
-
-.toast-enter-active,
-.toast-leave-active {
-    transition: opacity .2s;
-}
-
-.toast-enter-from,
-.toast-leave-to {
-    opacity: 0;
-}
-
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1442,11 +1413,6 @@ input {
         gap: calc(6 * var(--icon-unit));
     }
 
-    .app-shell .toast-message {
-        font-size: calc(13 * var(--icon-unit));
-        padding: calc(14 * var(--icon-unit)) calc(20 * var(--icon-unit));
-        gap: calc(9 * var(--icon-unit));
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
